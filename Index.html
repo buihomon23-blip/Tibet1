@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ทิเบตพยากรณ์ – เปิดไพ่</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>ทิเบตพยากรณ์</h1>
+      <p>เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
+    </header>
+
+    <section class="controls">
+      <div class="mode">
+        <button id="btn-one" class="primary">เปิดไพ่ 1 ใบ</button>
+        <button id="btn-three">สเปรด 3 ใบ</button>
+      </div>
+      <button id="btn-draw" class="draw">🔮 เปิดไพ่เลย</button>
+      <div class="quota" id="quota"></div>
+    </section>
+
+    <section id="cards" class="cards"></section>
+
+    <section class="journal" id="journal" style="display:none;">
+      <h3>บันทึกความรู้สึก</h3>
+      <textarea id="note" placeholder="วันนี้ฉันได้เรียนรู้อะไรจากไพ่..."></textarea>
+      <button id="btn-save">บันทึก</button>
+    </section>
+
+    <section class="history">
+      <h3>ประวัติการเปิดไพ่</h3>
+      <div id="history"></div>
+    </section>
+
+    <footer>
+      <small>MVP Demo • เด็ค 24 ใบ • ฟรีวันละ 1 ครั้ง</small>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
