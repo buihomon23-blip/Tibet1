@@ -1,4 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ทิเบตพยากรณ์</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <main class="container">
+    <h1>ทิเบตพยากรณ์</h1>
+    <p>เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
+
+    <!-- โหมดการเปิดไพ่ -->
+    <section class="controls">
+      <div class="mode">
+        <button id="btn-one" class="tab active">โหมด 1 ใบ</button>
+        <button id="btn-three" class="tab">โหมดสเปรด</button>
+      </div>
+      <button id="btn-draw" class="primary">🔮 เปิดไพ่ (ตามโหมด)</button>
+    </section>
+
+    <!-- บัตรอัปเกรด + ฟรี 1 ใบ -->
+    <section class="card paywall">
+      <h2>อัปเกรดการเข้าถึง</h2>
+      <p class="muted">ฟรี: เปิดได้ 1 ใบทันที • ซื้อแพ็กเพื่อปลดล็อกมากขึ้น</p>
+
+      <!-- ✅ ฟรี 1 ใบ (ใช้ได้เลย ไม่ต้องจ่าย) -->
+      <div class="box">
+        <h3>ฟรี 1 ใบ</h3>
+        <p class="muted">สิทธิ์นี้ใช้ได้ 1 ครั้งต่ออุปกรณ์</p>
+        <button id="btn-free" class="secondary">ใช้สิทธิ์วันนี้</button>
+        <div id="free-note" class="muted small"></div>
+      </div>
+
+      <!-- แพ็ก 29 -->
+      <div class="box">
+        <h3>เปิด 3–6 ใบ</h3>
+        <p class="muted">เครดิตสเปรด 1 ครั้ง</p>
+        <button id="btn-buy-29" class="primary outline">29 บาท</button>
+        <button id="btn-use-credit" class="secondary">ใช้เครดิตที่มี</button>
+        <div class="muted small">เครดิตคงเหลือ: <span id="credit-count">0</span> ครั้ง</div>
+      </div>
+
+      <!-- แพ็ก 49 -->
+      <div class="box">
+        <h3>แบบรายวัน</h3>
+        <p class="muted">เปิดไม่จำกัด 24 ชั่วโมง</p>
+        <button id="btn-buy-49" class="primary outline">49 บาท</button>
+        <div class="muted small">สถานะ: <span id="day-pass-status">ยังไม่เปิด</span></div>
+      </div>
+
+      <!-- แพ็กรายเดือน -->
+      <div class="box">
+        <h3>รายเดือน</h3>
+        <p class="muted">เปิดไม่จำกัด • ใช้ได้ 30 วัน</p>
+        <button id="btn-buy-199" class="primary outline">199 บาท</button>
+        <div class="muted small">หมดอายุ: <span id="month-pass-exp">—</span></div>
+      </div>
+
+      <!-- แพ็กรายปี -->
+      <div class="box">
+        <h3>รายปี (สิทธิพิเศษ)</h3>
+        <ul class="muted">
+          <li>เปิดไม่จำกัด 365 วัน</li>
+          <li>ธีมพิเศษ • บันทึกประวัติไม่จำกัด</li>
+        </ul>
+        <button id="btn-buy-1999" class="primary outline">1,999 บาท</button>
+        <div class="muted small">หมดอายุ: <span id="year-pass-exp">—</span></div>
+      </div>
+    </section>
+
+    <!-- ผลการเปิดไพ่ -->
+    <section class="result">
+      <div id="cards-area" class="cards"></div>
+      <div id="reading" class="reading"></div>
+    </section>
+
+    <!-- ประวัติ -->
+    <section class="history">
+      <h2>ประวัติการเปิดไพ่</h2>
+      <div id="history-list" class="history-list"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html><!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
