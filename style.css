@@ -136,3 +136,13 @@ p{opacity:.85}
 }
 .quota{font-size:12px;opacity:.8}
 footer{opacity:.6;text-align:center;margin-top:20px}
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.note {
+  display:block;
+  margin-top:6px;
+  font-size: 0.9rem;
+  opacity: .8;
+}
