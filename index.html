@@ -1,89 +1,170 @@
-<!doctype html>
-<html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ทิเบตพยากรณ์</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="container">
-    <h1 class="title">ทิเบตพยากรณ์</h1>
-    <p class="subtitle">เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
+/* ===== คีย์ LocalStorage ===== */
+const LS = {
+  FREE_DATE: 'tibet_free_used_on',        // YYYY-MM-DD ของวันที่ใช้สิทธิ์ฟรี
+  SPREAD_CREDIT: 'tibet_spread_credits',  // จำนวนเครดิตสเปรด 29 บาท/ครั้ง
+  DAY_PASS_UNTIL: 'tibet_day_until',      // ISO string เวลาหมดอายุสิทธิ์ตลอดวัน
+  SUB_MONTH_UNTIL: 'tibet_month_until',   // ISO string หมดอายุรายเดือน
+  SUB_YEAR_UNTIL: 'tibet_year_until'      // ISO string หมดอายุรายปี
+};
 
-    <!-- โหมด -->
-    <section class="controls">
-      <div class="mode">
-        <button id="btn-one" class="pill active">โหมด 1 ใบ</button>
-        <button id="btn-spread" class="pill">โหมดสเปรด</button>
-      </div>
+/* ===== Utils เวลา/วันที่ ===== */
+const todayKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+};
+const now = () => new Date();
+const parse = s => s ? new Date(s) : null;
+const isActive = until => until && now() < parse(until);
 
-      <div class="draw">
-        <button id="btn-draw" class="primary">🌙 เปิดไพ่ (ตามโหมด)</button>
-      </div>
-    </section>
+/* ===== สถานะแอป ===== */
+const state = {
+  mode: 'one',  // 'one' | 'spread'
+  cards: []
+};
 
-    <!-- ผลลัพธ์ -->
-    <section id="result" class="card-panel hidden">
-      <h3 id="card-title"></h3>
-      <p id="card-keys" class="muted"></p>
-      <p id="card-desc"></p>
-      <div class="result-actions">
-        <button id="btn-save" class="ghost">บันทึกความรู้สึก</button>
-      </div>
-    </section>
+/* ===== โหลดไพ่ ===== */
+async function loadCards(){
+  const res = await fetch('cards.json');
+  state.cards = await res.json();
+}
 
-    <!-- อัปเกรดการเข้าถึง -->
-    <section class="upgrade">
-      <h2>อัปเกรดการเข้าถึง</h2>
-      <p class="muted">ฟรี: เปิดได้วันละ 1 ใบ • ซื้อแพ็กเพื่อปลดล็อกมากขึ้น</p>
+/* ===== สุ่มไพ่ ===== */
+function sample(arr, n=1){
+  const tmp = [...arr];
+  const out = [];
+  for(let i=0;i<n;i++){
+    if(tmp.length===0) break;
+    const idx = Math.floor(Math.random()*tmp.length);
+    out.push(tmp.splice(idx,1)[0]);
+  }
+  return out;
+}
 
-      <!-- ฟรี 1 ใบ -->
-      <div class="upgrade-card">
-        <h3>ฟรี 1 ใบ</h3>
-        <p class="muted">ใช้สิทธิ์วันละครั้ง</p>
-        <button id="btn-free" class="primary">ใช้สิทธิ์วันนี้</button>
-        <p id="free-note" class="tiny muted"></p>
-      </div>
+/* ===== LocalStorage helpers ===== */
+const getSpreadCredits = () =>
+  Number(localStorage.getItem(LS.SPREAD_CREDIT) || '0');
+const setSpreadCredits = v =>
+  localStorage.setItem(LS.SPREAD_CREDIT, String(v));
 
-      <!-- 29 บาท: เครดิตสเปรด 1 ครั้ง -->
-      <div class="upgrade-card">
-        <h3>เปิด 3–6 ใบ</h3>
-        <p class="muted">เครดิตสเปรด 1 ครั้ง</p>
-        <button id="btn-buy-spread" class="primary">29 บาท</button>
-        <button id="btn-use-spread" class="ghost">ใช้เครดิตที่มี</button>
-        <p id="spread-left" class="tiny muted">เครดิตคงเหลือ: 0 ครั้ง</p>
-      </div>
+const markFreeUsedToday = () =>
+  localStorage.setItem(LS.FREE_DATE, todayKey());
+const freeUsedToday = () =>
+  localStorage.getItem(LS.FREE_DATE) === todayKey();
 
-      <!-- 49 บาท: ตลอดวัน -->
-      <div class="upgrade-card">
-        <h3>ตลอดวัน 24 ชั่วโมง</h3>
-        <p class="muted">เปิดไม่อั้นวันนี้</p>
-        <button id="btn-buy-day" class="primary">49 บาท</button>
-        <p id="day-pass-note" class="tiny muted"></p>
-      </div>
+const setDayPass = (hours=24) => {
+  const until = new Date(Date.now()+hours*60*60*1000).toISOString();
+  localStorage.setItem(LS.DAY_PASS_UNTIL, until);
+};
+const hasDayPass = () => isActive(localStorage.getItem(LS.DAY_PASS_UNTIL));
 
-      <!-- เดือน/ปี -->
-      <div class="grid-2">
-        <div class="upgrade-card">
-          <h3>รายเดือน</h3>
-          <p class="muted">199 บาท/เดือน — เปิดไม่อั้น</p>
-          <button id="btn-buy-month" class="primary">199 บาท</button>
-          <p id="sub-month-note" class="tiny muted"></p>
-        </div>
+const setMonthSub = (months=1) => {
+  const until = new Date();
+  until.setMonth(until.getMonth()+months);
+  localStorage.setItem(LS.SUB_MONTH_UNTIL, until.toISOString());
+};
+const hasMonthSub = () => isActive(localStorage.getItem(LS.SUB_MONTH_UNTIL));
 
-        <div class="upgrade-card">
-          <h3>รายปี</h3>
-          <p class="muted">1,999 บาท/ปี — สิทธิพิเศษ: ธีมพิเศษ + บันทึกย้อนได้ไม่จำกัด</p>
-          <button id="btn-buy-year" class="primary">1,999 บาท</button>
-          <p id="sub-year-note" class="tiny muted"></p>
-        </div>
-      </div>
+const setYearSub = (years=1) => {
+  const until = new Date();
+  until.setFullYear(until.getFullYear()+years);
+  localStorage.setItem(LS.SUB_YEAR_UNTIL, until.toISOString());
+};
+const hasYearSub = () => isActive(localStorage.getItem(LS.SUB_YEAR_UNTIL));
 
-      <p class="fine muted center">* การจ่ายเงินจริงจะเชื่อม Omise/PromptPay/TrueMoney ภายหลัง</p>
-    </section>
-  </main>
+const unlimitedAccess = () => hasDayPass() || hasMonthSub() || hasYearSub();
 
-  <script src="app.js"></script>
-</body>
-</html>
+/* ===== แสดงผลบนหน้าจอเดิม ===== */
+function renderCards(cards){
+  const panel = document.getElementById('result') || document.getElementById('result-panel');
+  if(panel) panel.classList.remove('hidden');
+
+  const title = document.getElementById('card-title');
+  const keys  = document.getElementById('card-keys');
+  const desc  = document.getElementById('card-desc');
+
+  if(cards.length===1){
+    if(title) title.textContent = cards[0].name || cards[0].title || 'ไพ่ 1 ใบ';
+    if(keys)  keys.textContent  = (cards[0].keys || cards[0].keywords || '').toString();
+    if(desc)  desc.textContent  = cards[0].desc || cards[0].meaning || '';
+  }else{
+    if(title) title.textContent = `ไพ่ ${cards.length} ใบ`;
+    if(keys)  keys.textContent  = cards.map(c=>c.name||c.title).join(' • ');
+    if(desc)  desc.textContent  = 'เซตสเปรด 3–6 ใบ';
+  }
+}
+
+/* ===== ปุ่ม/โหมดเดิม ===== */
+function setupModeButtons(){
+  const b1 = document.getElementById('btn-one');
+  const b2 = document.getElementById('btn-three') || document.getElementById('btn-spread');
+  if(b1) b1.addEventListener('click', ()=> state.mode='one');
+  if(b2) b2.addEventListener('click', ()=> state.mode='spread');
+}
+
+/* ===== กติกาเปิดไพ่ ===== */
+function canDrawOneNow(){
+  // เปิด 1 ใบได้เสมอ ถ้ายังไม่ใช้สิทธิ์ฟรีวันนี้
+  if(!freeUsedToday()) return true;
+  // ถ้าใช้ฟรีแล้ว แต่มีสิทธิ์ไม่อั้นก็ได้
+  if(unlimitedAccess()) return true;
+  return false;
+}
+
+async function drawOne(){
+  if(!canDrawOneNow()){
+    const pick = prompt(
+      'วันนี้ใช้สิทธิ์ฟรีแล้วค่ะ ❤️\nพิมพ์เลขเพื่อปลดล็อก:\n1) ตลอดวัน 49 บาท\n2) รายเดือน 199 บาท\n3) รายปี 1,999 บาท\n(กด Cancel เพื่อยกเลิก)'
+    );
+    if(pick==='1'){ setDayPass(24); alert('ปลดล็อกตลอดวันแล้ว!'); }
+    else if(pick==='2'){ setMonthSub(1); alert('สมัครรายเดือนสำเร็จ!'); }
+    else if(pick==='3'){ setYearSub(1); alert('สมัครรายปีสำเร็จ!'); }
+    else { return; }
+  }
+
+  if(!freeUsedToday() && !unlimitedAccess()){
+    // นับเป็นสิทธิ์ฟรีของวันนี้
+    markFreeUsedToday();
+  }
+  const [c] = sample(state.cards, 1);
+  renderCards([c]);
+}
+
+async function drawSpread(){
+  if(unlimitedAccess()){
+    const n = 3 + Math.floor(Math.random()*4); // 3–6
+    renderCards(sample(state.cards, n));
+    return;
+  }
+  const left = getSpreadCredits();
+  if(left>0){
+    setSpreadCredits(left-1);
+    const n = 3 + Math.floor(Math.random()*4);
+    renderCards(sample(state.cards, n));
+    return;
+  }
+  const ok = confirm('ยังไม่มีเครดิตสเปรด • ซื้อ 29 บาท เพิ่ม 1 ครั้ง?');
+  if(ok){
+    setSpreadCredits(getSpreadCredits()+1);
+    alert('เพิ่มเครดิตแล้ว! ลองกดอีกครั้งเพื่อเปิดสเปรด');
+  }
+}
+
+/* ===== ปุ่ม "เปิดไพ่ (ตามโหมด)" เดิม ===== */
+function setupDrawButton(){
+  const btn = document.getElementById('btn-draw');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    if(state.mode==='one') await drawOne();
+    else await drawSpread();
+  });
+}
+
+/* ===== เริ่มทำงาน ===== */
+(async function init(){
+  await loadCards();
+  setupModeButtons();
+  setupDrawButton();
+})();
