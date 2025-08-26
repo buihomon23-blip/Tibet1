@@ -315,3 +315,5 @@ document.getElementById('btn-save').onclick = ()=>{
 
 updateQuota();
 renderHistory();
+
+btnFree.disabled
