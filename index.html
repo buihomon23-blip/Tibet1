@@ -1,230 +1,89 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ทิเบตพยากรณ์</title>
-  <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-  <main class="container">
-    <h1>ทิเบตพยากรณ์</h1>
-    <p>เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
-
-    <!-- โหมดการเปิดไพ่ -->
-    <section class="controls">
-      <div class="mode">
-        <button id="btn-one" class="tab active">โหมด 1 ใบ</button>
-        <button id="btn-three" class="tab">โหมดสเปรด</button>
-      </div>
-      <button id="btn-draw" class="primary">🔮 เปิดไพ่ (ตามโหมด)</button>
-    </section>
-
-    <!-- บัตรอัปเกรด + ฟรี 1 ใบ -->
-    <section class="card paywall">
-      <h2>อัปเกรดการเข้าถึง</h2>
-      <p class="muted">ฟรี: เปิดได้ 1 ใบทันที • ซื้อแพ็กเพื่อปลดล็อกมากขึ้น</p>
-
-      <!-- ✅ ฟรี 1 ใบ (ใช้ได้เลย ไม่ต้องจ่าย) -->
-      <div class="box">
-        <h3>ฟรี 1 ใบ</h3>
-        <p class="muted">สิทธิ์นี้ใช้ได้ 1 ครั้งต่ออุปกรณ์</p>
-        <button id="btn-free" class="secondary">ใช้สิทธิ์วันนี้</button>
-        <div id="free-note" class="muted small"></div>
-      </div>
-
-      <!-- แพ็ก 29 -->
-      <div class="box">
-        <h3>เปิด 3–6 ใบ</h3>
-        <p class="muted">เครดิตสเปรด 1 ครั้ง</p>
-        <button id="btn-buy-29" class="primary outline">29 บาท</button>
-        <button id="btn-use-credit" class="secondary">ใช้เครดิตที่มี</button>
-        <div class="muted small">เครดิตคงเหลือ: <span id="credit-count">0</span> ครั้ง</div>
-      </div>
-
-      <!-- แพ็ก 49 -->
-      <div class="box">
-        <h3>แบบรายวัน</h3>
-        <p class="muted">เปิดไม่จำกัด 24 ชั่วโมง</p>
-        <button id="btn-buy-49" class="primary outline">49 บาท</button>
-        <div class="muted small">สถานะ: <span id="day-pass-status">ยังไม่เปิด</span></div>
-      </div>
-
-      <!-- แพ็กรายเดือน -->
-      <div class="box">
-        <h3>รายเดือน</h3>
-        <p class="muted">เปิดไม่จำกัด • ใช้ได้ 30 วัน</p>
-        <button id="btn-buy-199" class="primary outline">199 บาท</button>
-        <div class="muted small">หมดอายุ: <span id="month-pass-exp">—</span></div>
-      </div>
-
-      <!-- แพ็กรายปี -->
-      <div class="box">
-        <h3>รายปี (สิทธิพิเศษ)</h3>
-        <ul class="muted">
-          <li>เปิดไม่จำกัด 365 วัน</li>
-          <li>ธีมพิเศษ • บันทึกประวัติไม่จำกัด</li>
-        </ul>
-        <button id="btn-buy-1999" class="primary outline">1,999 บาท</button>
-        <div class="muted small">หมดอายุ: <span id="year-pass-exp">—</span></div>
-      </div>
-    </section>
-
-    <!-- ผลการเปิดไพ่ -->
-    <section class="result">
-      <div id="cards-area" class="cards"></div>
-      <div id="reading" class="reading"></div>
-    </section>
-
-    <!-- ประวัติ -->
-    <section class="history">
-      <h2>ประวัติการเปิดไพ่</h2>
-      <div id="history-list" class="history-list"></div>
-    </section>
-  </main>
-
-  <script src="app.js"></script>
-</body>
-</html><!doctype html>
+<!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ทิเบตพยากรณ์ – เปิดไพ่</title>
+  <title>ทิเบตพยากรณ์</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
-    <header>
-      <h1>ทิเบตพยากรณ์</h1>
-      <p>เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
-      <div id="status" class="status"></div>
-    </header>
+    <h1 class="title">ทิเบตพยากรณ์</h1>
+    <p class="subtitle">เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
 
-    <!-- โซนควบคุม -->
+    <!-- โหมด -->
     <section class="controls">
       <div class="mode">
-        <button id="btn-one" class="primary">โหมด 1 ใบ</button>
-        <button id="btn-three">โหมดสเปรด</button>
+        <button id="btn-one" class="pill active">โหมด 1 ใบ</button>
+        <button id="btn-spread" class="pill">โหมดสเปรด</button>
       </div>
-      <button id="btn-draw" class="draw">🔮 เปิดไพ่ (ตามโหมด)</button>
-      <div class="quota" id="quota"></div>
+
+      <div class="draw">
+        <button id="btn-draw" class="primary">🌙 เปิดไพ่ (ตามโหมด)</button>
+      </div>
     </section>
 
-    <!-- ปุ่มสิทธิ์ฟรี + แพ็กอัปเกรด -->
-    <section class="offers">
+    <!-- ผลลัพธ์ -->
+    <section id="result" class="card-panel hidden">
+      <h3 id="card-title"></h3>
+      <p id="card-keys" class="muted"></p>
+      <p id="card-desc"></p>
+      <div class="result-actions">
+        <button id="btn-save" class="ghost">บันทึกความรู้สึก</button>
+      </div>
+    </section>
+
+    <!-- อัปเกรดการเข้าถึง -->
+    <section class="upgrade">
       <h2>อัปเกรดการเข้าถึง</h2>
       <p class="muted">ฟรี: เปิดได้วันละ 1 ใบ • ซื้อแพ็กเพื่อปลดล็อกมากขึ้น</p>
 
-      <div class="offer-grid">
-        <!-- ฟรี 1 ใบ วันละ 1 ครั้ง -->
-        <div class="offer">
-          <h3>ฟรี 1 ใบ</h3>
-          <p class="desc">ใช้สิทธิ์วันละครั้ง</p>
-          <button id="btn-free-one" class="btn wfull">ใช้สิทธิ์วันนี้</button>
-        </div>
+      <!-- ฟรี 1 ใบ -->
+      <div class="upgrade-card">
+        <h3>ฟรี 1 ใบ</h3>
+        <p class="muted">ใช้สิทธิ์วันละครั้ง</p>
+        <button id="btn-free" class="primary">ใช้สิทธิ์วันนี้</button>
+        <p id="free-note" class="tiny muted"></p>
+      </div>
 
-        <!-- 29 บาท: เครดิตสเปรด 1 ครั้ง (เปิด 3–6 ใบ) -->
-        <div class="offer">
-          <h3>เปิด 3–6 ใบ</h3>
-          <p class="desc">เครดิตสเปรด 1 ครั้ง</p>
-          <!-- แทนที่ด้วยลิงก์ Opn ของคุณ และตั้ง Redirect เป็น ?unlock=spread1 -->
-          <a class="btn primary wfull" href="PAYLINK_SPREAD" target="_blank" rel="noopener">29 บาท</a>
-          <button id="btn-spread-open" class="btn ghost wfull" style="margin-top:8px;">ใช้เครดิตที่มี</button>
-          <div class="hint">เครดิตคงเหลือ: <span id="spread-left">0</span> ครั้ง</div>
-        </div>
+      <!-- 29 บาท: เครดิตสเปรด 1 ครั้ง -->
+      <div class="upgrade-card">
+        <h3>เปิด 3–6 ใบ</h3>
+        <p class="muted">เครดิตสเปรด 1 ครั้ง</p>
+        <button id="btn-buy-spread" class="primary">29 บาท</button>
+        <button id="btn-use-spread" class="ghost">ใช้เครดิตที่มี</button>
+        <p id="spread-left" class="tiny muted">เครดิตคงเหลือ: 0 ครั้ง</p>
+      </div>
 
-        <!-- 49 บาท: ไม่จำกัด 24 ชม. -->
-        <div class="offer">
-          <h3>ไม่จำกัด 24 ชม.</h3>
-          <p class="desc">เปิดได้ไม่จำกัดใน 24 ชั่วโมง</p>
-          <!-- ตั้ง Redirect เป็น ?unlock=day -->
-          <a class="btn primary wfull" href="PAYLINK_DAY" target="_blank" rel="noopener">49 บาท</a>
-        </div>
+      <!-- 49 บาท: ตลอดวัน -->
+      <div class="upgrade-card">
+        <h3>ตลอดวัน 24 ชั่วโมง</h3>
+        <p class="muted">เปิดไม่อั้นวันนี้</p>
+        <button id="btn-buy-day" class="primary">49 บาท</button>
+        <p id="day-pass-note" class="tiny muted"></p>
+      </div>
 
-        <!-- 199 บาท/เดือน -->
-        <div class="offer">
+      <!-- เดือน/ปี -->
+      <div class="grid-2">
+        <div class="upgrade-card">
           <h3>รายเดือน</h3>
-          <p class="desc">เปิดได้ไม่จำกัดทั้งเดือน</p>
-          <!-- ตั้ง Redirect เป็น ?unlock=month -->
-          <a class="btn primary wfull" href="PAYLINK_MONTH" target="_blank" rel="noopener">199 บาท/เดือน</a>
+          <p class="muted">199 บาท/เดือน — เปิดไม่อั้น</p>
+          <button id="btn-buy-month" class="primary">199 บาท</button>
+          <p id="sub-month-note" class="tiny muted"></p>
         </div>
 
-        <!-- 1,999 บาท/ปี -->
-        <div class="offer">
+        <div class="upgrade-card">
           <h3>รายปี</h3>
-          <p class="desc">ไม่จำกัดทั้งปี + สิทธิ์พิเศษ</p>
-          <!-- ตั้ง Redirect เป็น ?unlock=year -->
-          <a class="btn primary wfull" href="PAYLINK_YEAR" target="_blank" rel="noopener">1,999 บาท/ปี</a>
+          <p class="muted">1,999 บาท/ปี — สิทธิพิเศษ: ธีมพิเศษ + บันทึกย้อนได้ไม่จำกัด</p>
+          <button id="btn-buy-year" class="primary">1,999 บาท</button>
+          <p id="sub-year-note" class="tiny muted"></p>
         </div>
       </div>
 
-      <p class="hint">เมื่อชำระเงินสำเร็จ ระบบจะพากลับมาหน้านี้และปลดล็อกสิทธิ์อัตโนมัติ</p>
+      <p class="fine muted center">* การจ่ายเงินจริงจะเชื่อม Omise/PromptPay/TrueMoney ภายหลัง</p>
     </section>
-
-    <section id="cards" class="cards"></section>
-
-    <section class="journal" id="journal" style="display:none;">
-      <h3>บันทึกความรู้สึก</h3>
-      <textarea id="note" placeholder="วันนี้ฉันได้เรียนรู้อะไรจากไพ่..."></textarea>
-      <button id="btn-save">บันทึก</button>
-    </section>
-
-    <section class="history">
-      <h3>ประวัติการเปิดไพ่</h3>
-      <div id="history"></div>
-    </section>
-
-    <footer>
-      <small>MVP • เด็ค 24 ใบ • ฟรีวันละ 1 ใบ • มีแพ็กอัปเกรด</small>
-    </footer>
   </main>
 
   <script src="app.js"></script>
 </body>
-</html>!doctype html>
-<html lang="th">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ทิเบตพยากรณ์ – เปิดไพ่</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="container">
-    <header>
-      <h1>ทิเบตพยากรณ์</h1>
-      <p>เปิดไพ่ทิเบต ดูดวงสบาย ๆ ได้ทุกวัน</p>
-    </header>
-
-    <section class="controls">
-      <div class="mode">
-        <button id="btn-one" class="primary">เปิดไพ่ 1 ใบ</button>
-        <button id="btn-three">สเปรด 3 ใบ</button>
-      </div>
-      <button id="btn-draw" class="draw">🔮 เปิดไพ่เลย</button>
-      <div class="quota" id="quota"></div>
-    </section>
-
-    <section id="cards" class="cards"></section>
-
-    <section class="journal" id="journal" style="display:none;">
-      <h3>บันทึกความรู้สึก</h3>
-      <textarea id="note" placeholder="วันนี้ฉันได้เรียนรู้อะไรจากไพ่..."></textarea>
-      <button id="btn-save">บันทึก</button>
-    </section>
-
-    <section class="history">
-      <h3>ประวัติการเปิดไพ่</h3>
-      <div id="history"></div>
-    </section>
-
-    <footer>
-      <small>MVP Demo • เด็ค 24 ใบ • ฟรีวันละ 1 ครั้ง</small>
-    </footer>
-  </main>
-  <script src="app.js"></script>
-</body>
-</html><!-- ปุ่มเปิดไพ่ฟรี 1 ใบ -->
-<button id="btn-free" class="btn primary">เปิดไพ่ฟรี 1 ใบ</button>
-<span id="free-note" class="note"></span>
+</html>
