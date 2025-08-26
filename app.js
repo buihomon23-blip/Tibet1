@@ -1,4 +1,280 @@
-// ===== Storage Keys
+/* =========================
+   ทิเบตพยากรณ์ – Logic หลัก
+   ========================= */
+
+const LS = {
+  FREE_USED: "tibet_free_used_v1",
+  CREDITS: "tibet_credits_v1",
+  DAY_PASS_UNTIL: "tibet_day_until_v1",
+  MONTH_PASS_UNTIL: "tibet_month_until_v1",
+  YEAR_PASS_UNTIL: "tibet_year_until_v1",
+  HISTORY: "tibet_history_v1",
+};
+
+const dom = (id) => document.getElementById(id);
+const $ = (sel) => document.querySelector(sel);
+
+let mode = "one"; // one | spread
+
+/* --------------------------
+   ส่วนโหลด/บันทึกสถานะ
+---------------------------*/
+function getInt(key, def = 0) {
+  const v = parseInt(localStorage.getItem(key) || "", 10);
+  return Number.isFinite(v) ? v : def;
+}
+function setInt(key, val) {
+  localStorage.setItem(key, String(val));
+}
+function getTime(key) {
+  const v = parseInt(localStorage.getItem(key) || "", 10);
+  return Number.isFinite(v) ? v : 0;
+}
+function setTime(key, t) {
+  localStorage.setItem(key, String(t));
+}
+function now() {
+  return Date.now();
+}
+function fmtDate(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleString("th-TH");
+}
+
+/* --------------------------
+   สิทธิ์เข้าถึง (แพ็กเกจ/เครดิต)
+---------------------------*/
+function hasUnlimited() {
+  const t = now();
+  return (
+    getTime(LS.DAY_PASS_UNTIL) > t ||
+    getTime(LS.MONTH_PASS_UNTIL) > t ||
+    getTime(LS.YEAR_PASS_UNTIL) > t
+  );
+}
+function getCredits() {
+  return getInt(LS.CREDITS, 0);
+}
+function addCredits(n) {
+  setInt(LS.CREDITS, Math.max(0, getCredits() + n));
+  renderAccessUI();
+}
+function consumeCredit() {
+  const c = getCredits();
+  if (c > 0) {
+    setInt(LS.CREDITS, c - 1);
+    renderAccessUI();
+    return true;
+  }
+  return false;
+}
+function grantPass(days) {
+  const until = now() + days * 24 * 60 * 60 * 1000;
+  if (days <= 1) setTime(LS.DAY_PASS_UNTIL, until);
+  else if (days < 366) setTime(LS.MONTH_PASS_UNTIL, until);
+  else setTime(LS.YEAR_PASS_UNTIL, until);
+  renderAccessUI();
+}
+
+/* --------------------------
+   ไพ่และคำทำนาย (โหลดจาก cards.json)
+---------------------------*/
+let ALL_CARDS = [];
+async function loadCards() {
+  if (ALL_CARDS.length) return ALL_CARDS;
+  const res = await fetch("cards.json");
+  ALL_CARDS = await res.json();
+  return ALL_CARDS;
+}
+function sample(arr, n = 1) {
+  const a = [...arr];
+  const out = [];
+  for (let i = 0; i < n && a.length; i++) {
+    const k = Math.floor(Math.random() * a.length);
+    out.push(a.splice(k, 1)[0]);
+  }
+  return out;
+}
+
+/* --------------------------
+   วาดผล + ประวัติ
+---------------------------*/
+function pushHistory(item) {
+  const raw = localStorage.getItem(LS.HISTORY);
+  const hist = raw ? JSON.parse(raw) : [];
+  hist.unshift(item);
+  localStorage.setItem(LS.HISTORY, JSON.stringify(hist.slice(0, 50)));
+  renderHistory();
+}
+function renderHistory() {
+  const box = dom("history-list");
+  if (!box) return;
+  const raw = localStorage.getItem(LS.HISTORY);
+  const hist = raw ? JSON.parse(raw) : [];
+  if (!hist.length) {
+    box.innerHTML = `<div class="muted">ยังไม่มีประวัติ</div>`;
+    return;
+  }
+  box.innerHTML = hist
+    .map(
+      (h) => `
+      <div class="history-item">
+        <div class="time">${fmtDate(h.time)}</div>
+        <div class="cards">${h.cards.map((c) => `<span>${c.title}</span>`).join(" • ")}</div>
+        <div class="text muted">${h.text}</div>
+      </div>
+    `
+    )
+    .join("");
+}
+
+/* --------------------------
+   การเปิดไพ่
+---------------------------*/
+async function doDraw(n, isFree = false) {
+  // เงื่อนไขเข้า: ฟรีครั้งเดียว หรือมีเครดิต/พาสไม่จำกัด
+  if (!isFree) {
+    if (!hasUnlimited()) {
+      if (!consumeCredit()) {
+        alert("ยังไม่มีสิทธิ์ค่ะ • ใช้ปุ่มฟรี 1 ใบ หรือซื้อแพ็กก่อน");
+        return;
+      }
+    }
+  }
+
+  const cards = await loadCards();
+  const pick = sample(cards, n);
+  // แสดงผล
+  const area = dom("cards-area");
+  const reading = dom("reading");
+  area.innerHTML = pick
+    .map(
+      (c) => `
+      <div class="card-tile">
+        <div class="title">${c.title}</div>
+        <div class="desc muted">${c.keywords || ""}</div>
+      </div>`
+    )
+    .join("");
+  const text =
+    n === 1
+      ? pick[0].meaning || "จงตั้งสติ และทำสิ่งที่ควรทำ"
+      : pick.map((c, i) => `${i + 1}) ${c.title}: ${c.meaning || ""}`).join("<br/>");
+  reading.innerHTML = text;
+
+  // เก็บประวัติ
+  pushHistory({ time: now(), cards: pick, text });
+
+  // ถ้าเป็นการใช้สิทธิ์ฟรี: ปิดสิทธิ์ฟรีทันที
+  if (isFree) {
+    localStorage.setItem(LS.FREE_USED, "1");
+    renderFreeUI();
+  }
+}
+
+/* --------------------------
+   ปุ่ม/เหตุการณ์
+---------------------------*/
+function bindUI() {
+  // โหมด
+  dom("btn-one")?.addEventListener("click", () => {
+    mode = "one";
+    $("#btn-one").classList.add("active");
+    $("#btn-three").classList.remove("active");
+  });
+  dom("btn-three")?.addEventListener("click", () => {
+    mode = "spread";
+    $("#btn-three").classList.add("active");
+    $("#btn-one").classList.remove("active");
+  });
+
+  // เปิดตามโหมด (ใช้เครดิต/พาส)
+  dom("btn-draw")?.addEventListener("click", () => {
+    const n = mode === "one" ? 1 : 3 + Math.floor(Math.random() * 4); // 3–6 ใบ
+    doDraw(n, false);
+  });
+
+  // ✅ ฟรี 1 ใบ (ไม่ต้องจ่าย ไม่แตะเครดิต)
+  dom("btn-free")?.addEventListener("click", () => {
+    const used = localStorage.getItem(LS.FREE_USED) === "1";
+    if (used) {
+      alert("คุณใช้สิทธิ์ฟรีแล้วค่ะ");
+      return;
+    }
+    doDraw(1, true);
+  });
+
+  // ซื้อแพ็ก (เชื่อม payment ทีหลัง) — ตอนนี้เดโม: เพิ่มสิทธิ์ให้ลองใช้งาน
+  dom("btn-buy-29")?.addEventListener("click", () => {
+    // TODO: เรียกหน้าเก็บเงินจริง (Omise/PromptPay/TrueMoney)
+    addCredits(1); // เดโม: ให้เครดิตสเปรด 1 ครั้ง
+    alert("เดโม: เติมเครดิตสเปรด 1 ครั้งแล้วค่ะ");
+  });
+
+  dom("btn-buy-49")?.addEventListener("click", () => {
+    grantPass(1); // 1 วัน
+    alert("เดโม: เปิดไม่จำกัด 24 ชม. แล้วค่ะ");
+  });
+
+  dom("btn-buy-199")?.addEventListener("click", () => {
+    grantPass(30); // 30 วัน
+    alert("เดโม: เปิดไม่จำกัด 30 วันแล้วค่ะ");
+  });
+
+  dom("btn-buy-1999")?.addEventListener("click", () => {
+    grantPass(365); // 365 วัน
+    alert("เดโม: เปิดไม่จำกัด 365 วัน + สิทธิพิเศษ");
+  });
+
+  dom("btn-use-credit")?.addEventListener("click", () => {
+    if (hasUnlimited() || getCredits() > 0) {
+      // ใช้โหมดสเปรดเสมอ
+      doDraw(3 + Math.floor(Math.random() * 4), false);
+    } else {
+      alert("ไม่มีสิทธิ์ค่ะ • ซื้อแพ็กหรือใช้สิทธิ์ฟรี 1 ใบก่อน");
+    }
+  });
+}
+
+/* --------------------------
+   แสดงสถานะบนหน้าจอ
+---------------------------*/
+function renderAccessUI() {
+  const credits = getCredits();
+  const day = getTime(LS.DAY_PASS_UNTIL);
+  const mon = getTime(LS.MONTH_PASS_UNTIL);
+  const yr = getTime(LS.YEAR_PASS_UNTIL);
+
+  dom("credit-count").textContent = credits;
+  dom("day-pass-status").textContent = day > now() ? "เปิดใช้งาน" : "ยังไม่เปิด";
+  dom("month-pass-exp").textContent = fmtDate(mon);
+  dom("year-pass-exp").textContent = fmtDate(yr);
+}
+function renderFreeUI() {
+  const used = localStorage.getItem(LS.FREE_USED) === "1";
+  const btn = dom("btn-free");
+  const note = dom("free-note");
+  if (btn) {
+    btn.disabled = used;
+    btn.textContent = used ? "ใช้สิทธิ์แล้ว" : "ใช้สิทธิ์วันนี้";
+  }
+  if (note) {
+    note.textContent = used
+      ? "คุณได้ใช้สิทธิ์เปิดไพ่ฟรีแล้ว"
+      : "สิทธิ์นี้ใช้ได้ 1 ครั้งต่ออุปกรณ์";
+  }
+}
+
+/* --------------------------
+   เริ่มทำงาน
+---------------------------*/
+document.addEventListener("DOMContentLoaded", () => {
+  bindUI();
+  renderFreeUI();
+  renderAccessUI();
+  renderHistory();
+});// ===== Storage Keys
 const LS_DAILY     = 'tib_oracle_daily';
 const LS_HISTORY   = 'tib_oracle_hist';
 const LS_PRO_UNTIL = 'tib_oracle_pro_until';   // timestamp millis for PRO (day/month/year)
